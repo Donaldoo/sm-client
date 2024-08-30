@@ -9,12 +9,13 @@ import useUserStore from '@/core/stores/store'
 import { useState } from 'react'
 import Update from '@/components/Update'
 import { Button } from '@mui/material'
-import getPosts from '@/core/api/posts/getPosts'
 import Posts from '@/components/Posts'
 import PersonIcon from '@mui/icons-material/Person'
 import getUserFollowing from '@/core/api/user/getUserFollowing'
 import { follow } from '@/core/api/posts/follow'
 import { unfollow } from '@/core/api/posts/unfollow'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import { useRouter } from 'next/navigation'
 
 export default function ProfileContent({ userId }: { userId: string }) {
   const [openUpdate, setOpenUpdate] = useState(false)
@@ -44,6 +45,8 @@ export default function ProfileContent({ userId }: { userId: string }) {
       queryClient.invalidateQueries(['suggestedUsers'])
     }
   })
+
+  const router = useRouter()
 
   return (
     <div className='no-scrollbar max-h-[92vh] w-2/3 overflow-scroll bg-gray-50'>
@@ -102,7 +105,10 @@ export default function ProfileContent({ userId }: { userId: string }) {
                     {isFollowing ? 'Following' : 'Follow'}
                   </Button>
                 )}
-                {/*<EmailOutlinedIcon />*/}
+                <EmailOutlinedIcon
+                  className='cursor-pointer'
+                  onClick={() => router.push(`/test?targetUserId=${data?.id}`)}
+                />
                 {userId !== user?.userId && <MoreVertIcon />}
               </div>
             </div>

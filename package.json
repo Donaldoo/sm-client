@@ -13,6 +13,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@hookform/resolvers": "^3.9.0",
+    "@microsoft/signalr": "^8.0.7",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
     "moment": "^2.30.1",

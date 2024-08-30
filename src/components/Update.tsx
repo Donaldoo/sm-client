@@ -53,7 +53,6 @@ export default function Update({
     mutationFn: (req: EditAccountRequest) => editAccount(req),
     onSuccess: () => {
       toast.success('Account updated successfully!')
-      setUser()
       queryClient.invalidateQueries(['user', user.id])
     }
   })

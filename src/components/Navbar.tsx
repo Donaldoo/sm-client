@@ -30,7 +30,7 @@ function Navbar() {
   })
 
   return (
-    <div className='sticky top-0 z-[999] flex items-center justify-between border-b bg-white px-5 py-3'>
+    <div className='sticky top-0 z-[999] flex items-center justify-between border-b bg-white px-5 py-3 shadow-sm shadow-gray-400'>
       <div className='flex items-center gap-8'>
         <Link href='/' style={{ textDecoration: 'none' }}>
           <span className='text-4xl font-bold'>UniLink</span>
@@ -60,7 +60,10 @@ function Navbar() {
           </span>
         </div>
         <PersonOutlinedIcon />
-        <EmailOutlinedIcon />
+        <EmailOutlinedIcon
+          onClick={() => router.push('/messages')}
+          className='cursor-pointer'
+        />
         <NotificationsOutlinedIcon />
         <ExitToAppIcon onClick={handleLogout} className='cursor-pointer' />
       </div>
