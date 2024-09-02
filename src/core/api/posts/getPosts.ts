@@ -1,5 +1,9 @@
 import { httpClient } from '@/core/api/httpClient'
-import { PostCategory } from '@/core/api/posts/createPost'
+import {
+  PostCategory,
+  WorkExperience,
+  WorkIndustry
+} from '@/core/api/posts/createPost'
 
 export interface Post {
   id: string
@@ -14,11 +18,22 @@ export interface Post {
 export interface GetPostsRequest {
   category?: PostCategory
   userId?: string
+  workExperience?: WorkExperience
+  workIndustry?: WorkIndustry
 }
 
 export default function getPosts(req: GetPostsRequest): Promise<Post[]> {
   let query = ''
-  if (req.category) query += `?category=${req.category}`
-  if (req.userId && req.userId.length) query += `?userId=${req.userId}`
-  return httpClient.get('posts' + query)
+  const params = new URLSearchParams()
+
+  if (req.category) params.append('category', req.category.toString())
+  if (req.userId && req.userId.length) params.append('userId', req.userId)
+  if (req.workIndustry)
+    params.append('workIndustry', req.workIndustry.toString())
+  if (req.workExperience)
+    params.append('workExperience', req.workExperience.toString())
+
+  query = params.toString()
+
+  return httpClient.get('posts' + (query ? '?' + query : ''))
 }

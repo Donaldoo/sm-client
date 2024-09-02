@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import getUserById, { User } from '@/core/api/user/getUserById'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import { Button, Modal } from '@mui/material'
@@ -17,7 +17,12 @@ import useUserStore from '@/core/stores/store'
 const schema = yup.object().shape({
   firstName: yup.string().required('First name is required!'),
   lastName: yup.string().required('Last name is required!'),
-  email: yup.string().email().required('Email is required!')
+  email: yup.string().email().required('Email is required!'),
+  city: yup.string().notRequired(),
+  website: yup.string().notRequired(),
+  profilePicture: yup.string().notRequired(),
+  coverPicture: yup.string().notRequired(),
+  password: yup.string().notRequired()
 })
 
 export default function Update({
@@ -29,8 +34,8 @@ export default function Update({
   user?: User
   open: boolean
 }) {
-  const [cover, setCover] = useState(null)
-  const [profile, setProfile] = useState(null)
+  const [cover, setCover] = useState<File | null>(null)
+  const [profile, setProfile] = useState<File | null>(null)
 
   const resolver = yupResolver(schema)
   const queryClient = useQueryClient()
@@ -42,9 +47,9 @@ export default function Update({
   } = useForm({ resolver })
 
   const { data, isLoading } = useQuery({
-    queryKey: ['user', user.id],
-    queryFn: () => getUserById(user.id),
-    enabled: !!user.id
+    queryKey: ['user', user!.id],
+    queryFn: () => getUserById(user!.id),
+    enabled: !!user!.id
   })
 
   const { setUser } = useUserStore()
@@ -53,20 +58,24 @@ export default function Update({
     mutationFn: (req: EditAccountRequest) => editAccount(req),
     onSuccess: () => {
       toast.success('Account updated successfully!')
-      queryClient.invalidateQueries(['user', user.id])
+      queryClient.invalidateQueries(['user', user!.id])
     }
   })
 
   const onSubmit = async (data: EditAccountRequest) => {
     let coverUrl
     let profileUrl
-    coverUrl = cover ? await uploadImage(cover) : user.coverPicture
-    if (coverUrl.startsWith('"') && coverUrl.endsWith('"')) {
-      coverUrl = coverUrl.slice(1, -1)
+    coverUrl = cover ? await uploadImage(cover) : user!.coverPicture
+    if (coverUrl?.length) {
+      if (coverUrl.startsWith('"') && coverUrl.endsWith('"')) {
+        coverUrl = coverUrl.slice(1, -1)
+      }
     }
-    profileUrl = profile ? await uploadImage(profile) : user.profilePicture
-    if (profileUrl.startsWith('"') && profileUrl.endsWith('"')) {
-      profileUrl = profileUrl.slice(1, -1)
+    profileUrl = profile ? await uploadImage(profile) : user!.profilePicture
+    if (profileUrl?.length) {
+      if (profileUrl.startsWith('"') && profileUrl.endsWith('"')) {
+        profileUrl = profileUrl.slice(1, -1)
+      }
     }
     data.profilePicture = profileUrl
     data.coverPicture = coverUrl
@@ -76,13 +85,13 @@ export default function Update({
     setOpenUpdate(false)
   }
 
-  const handleProfileChange = e => {
+  const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setProfile(e.target.files[0])
     }
   }
 
-  const handleCoverChange = e => {
+  const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setCover(e.target.files[0])
     }
@@ -124,7 +133,7 @@ export default function Update({
                     src={
                       profile
                         ? URL.createObjectURL(profile)
-                        : user.profilePicture
+                        : user!.profilePicture
                     }
                     alt=''
                   />
@@ -148,7 +157,9 @@ export default function Update({
                 <div className='relative'>
                   <img
                     className='h-[150px] w-[220px] object-cover'
-                    src={cover ? URL.createObjectURL(cover) : user.coverPicture}
+                    src={
+                      cover ? URL.createObjectURL(cover) : user!.coverPicture
+                    }
                     alt=''
                   />
                   <CloudUploadIcon className='text-gry-500 absolute bottom-0 left-0 right-0 top-0 m-auto cursor-pointer text-[30px]' />

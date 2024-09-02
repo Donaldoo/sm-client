@@ -2,12 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import getStories from '@/core/api/posts/getStories'
-import { useState } from 'react'
+import { ChangeEvent, MouseEventHandler, useState } from 'react'
 import UploadIcon from '@mui/icons-material/Upload'
 import { createStory } from '@/core/api/posts/createStory'
 import uploadImage from '@/core/api/posts/uploadImage'
 import useUserStore from '@/core/stores/store'
 import Image from 'next/image'
+import getUserById from '@/core/api/user/getUserById'
 
 const Stories = () => {
   const { data, isLoading, error } = useQuery({
@@ -16,11 +17,16 @@ const Stories = () => {
   })
 
   const { user } = useUserStore()
+  const { data: userr } = useQuery({
+    queryKey: ['user', user?.userId],
+    queryFn: () => getUserById(user!.userId),
+    enabled: !!user?.userId
+  })
 
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState<File | null>(null)
   const queryClient = useQueryClient()
 
-  const handleFileChange = e => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0])
     }
@@ -31,7 +37,7 @@ const Stories = () => {
     onSuccess: () => queryClient.invalidateQueries(['stories'])
   })
 
-  const handleClick = async e => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     let imgUrl = ''
     if (file) imgUrl = await uploadImage(file)
@@ -46,19 +52,19 @@ const Stories = () => {
     <div className='mb-0 flex h-[50px] gap-[10px] sm:mb-[30px] sm:h-[250px]'>
       <div className='relative w-[200px] overflow-hidden rounded-[10px]'>
         <img
-          className='h-full w-full object-cover opacity-60'
-          src={file ? URL.createObjectURL(file) : user?.profilePicture}
+          className='h-full w-full bg-gray-400 object-cover opacity-60'
+          src={file ? URL.createObjectURL(file) : userr?.profilePicture}
           alt=''
         />
         <span className='absolute bottom-2.5 left-2.5 hidden font-medium text-white sm:block'>
-          username
+          {userr?.firstName} {userr?.lastName}
         </span>
         {file && (
           <button
             onClick={handleClick}
             className='absolute bottom-10 right-5 rounded bg-blue-500 px-2 py-1 text-white'
           >
-            <UploadIcon size='small' />
+            <UploadIcon />
           </button>
         )}
         <input
@@ -71,7 +77,7 @@ const Stories = () => {
         />
         <label htmlFor='image'>
           <button
-            onClick={() => document.getElementById('image').click()}
+            onClick={() => document.getElementById('image')!.click()}
             className='absolute bottom-10 left-2.5 flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full bg-blue-500 pb-1 text-3xl text-white'
           >
             +

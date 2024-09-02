@@ -11,6 +11,7 @@ import useUserStore from '@/core/stores/store'
 import { useRouter } from 'next/navigation'
 import { useQuery } from 'react-query'
 import getUserById from '@/core/api/user/getUserById'
+import PersonIcon from '@mui/icons-material/Person'
 
 function Navbar() {
   const router = useRouter()
@@ -47,11 +48,15 @@ function Navbar() {
       </div>
       <div className='flex items-center gap-5'>
         <div className='flex items-center gap-3 font-medium'>
-          <img
-            className='h-8 w-8 rounded-full object-cover'
-            src={currentUser?.profilePicture}
-            alt=''
-          />
+          {currentUser?.profilePicture?.length ? (
+            <img
+              className='h-8 w-8 rounded-full object-cover'
+              src={currentUser?.profilePicture}
+              alt=''
+            />
+          ) : (
+            <PersonIcon className='h-8 w-8 rounded-full bg-gray-200 object-cover' />
+          )}
           <span
             className='cursor-pointer text-xl font-bold'
             onClick={() => router.push(`/profile?userId=${user?.userId}`)}

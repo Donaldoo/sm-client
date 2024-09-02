@@ -8,7 +8,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { Button, Popover } from '@mui/material'
-import { Post } from '@/core/api/posts/getPosts'
+import type { Post } from '@/core/api/posts/getPosts'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import getLikes from '@/core/api/posts/getLikes'
 import useUserStore from '@/core/stores/store'
@@ -20,7 +20,7 @@ import deletePost from '@/core/api/posts/deletePost'
 import { toast } from 'sonner'
 import PersonIcon from '@mui/icons-material/Person'
 
-export default function Post({ post, key }: { post: Post; key: any }) {
+export default function Post({ post }: { post: Post }) {
   const [commentOpen, setCommentOpen] = useState(false)
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)

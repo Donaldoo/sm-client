@@ -2,13 +2,13 @@ import { httpClient } from '@/core/api/httpClient'
 
 export interface EditAccountRequest {
   email: string
-  password: string
   firstName: string
   lastName: string
-  profilePicture: string
-  coverPicture: string
-  city: string
-  website: string
+  password?: string | null
+  profilePicture?: string | null
+  coverPicture?: string | null
+  city?: string | null
+  website?: string | null
 }
 
 export function editAccount(req: EditAccountRequest): Promise<string> {

@@ -8,6 +8,7 @@ const config = {
   eslint: {
     ignoreDuringBuilds: true
   },
+  reactStrictMode: false,
   images: {
     remotePatterns: [
       {

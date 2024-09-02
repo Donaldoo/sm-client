@@ -11,6 +11,7 @@ import { useMutation } from 'react-query'
 import postSignUp, { SignUpRequest } from '@/core/api/auth/postSignUp'
 import { toast } from 'sonner'
 import postLogin, { LoginRequest } from '@/core/api/auth/postLogin'
+import useUserStore from '@/core/stores/store'
 
 const schema = yup.object().shape({
   firstName: yup.string().required('First name is required!'),
@@ -22,6 +23,7 @@ const schema = yup.object().shape({
 const SignupForm = () => {
   const resolver = yupResolver(schema)
   const router = useRouter()
+  const { setUser } = useUserStore()
 
   const {
     control,
@@ -31,7 +33,12 @@ const SignupForm = () => {
 
   const login = useMutation({
     mutationFn: (data: LoginRequest) => postLogin(data),
-    onSuccess: () => router.push('/'),
+    onSuccess: data => {
+      setUser(data.user)
+      localStorage.setItem('token', data.token)
+      document.cookie = `authToken=${data.token}; path=/;`
+      router.push('/')
+    },
     onError: () => {
       toast.error('Could not authenticate!!')
     }

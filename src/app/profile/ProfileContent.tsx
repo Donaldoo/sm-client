@@ -8,7 +8,7 @@ import getUserById from '@/core/api/user/getUserById'
 import useUserStore from '@/core/stores/store'
 import { useState } from 'react'
 import Update from '@/components/Update'
-import { Button } from '@mui/material'
+import { Button, CircularProgress } from '@mui/material'
 import Posts from '@/components/Posts'
 import PersonIcon from '@mui/icons-material/Person'
 import getUserFollowing from '@/core/api/user/getUserFollowing'
@@ -51,20 +51,24 @@ export default function ProfileContent({ userId }: { userId: string }) {
   return (
     <div className='no-scrollbar max-h-[92vh] w-2/3 overflow-scroll bg-gray-50'>
       {isLoading ? (
-        'loading'
+        <CircularProgress />
       ) : (
         <>
           <div className='relative h-[350px] w-full'>
-            <img
-              src={data?.coverPicture ?? ''}
-              alt=''
-              className='h-full w-full bg-gray-100 object-cover'
-            />
+            {data?.coverPicture?.length ? (
+              <img
+                src={data?.coverPicture ?? ''}
+                alt=''
+                className='h-full w-full object-cover'
+              />
+            ) : (
+              <div className='h-full w-full bg-gray-300'></div>
+            )}
             {data?.profilePicture && data.profilePicture.length ? (
               <img
                 src={data?.profilePicture}
                 alt=''
-                className='absolute left-0 right-0 top-[220px] m-auto h-[250px] w-[250px] rounded-full object-cover shadow-sm shadow-gray-600'
+                className='absolute left-0 right-0 top-[220px] m-auto h-[250px] w-[250px] rounded-full bg-gray-100 object-cover shadow-sm shadow-gray-600'
               />
             ) : (
               <PersonIcon className='absolute left-0 right-0 top-[250px] m-auto h-[200px] w-[200px] rounded-full bg-gray-200 object-cover' />
@@ -72,18 +76,22 @@ export default function ProfileContent({ userId }: { userId: string }) {
           </div>
           <div className='space-y-[35px] px-[70px] py-5'>
             <div className='flex h-[180px] items-center justify-between rounded-2xl bg-white p-12 text-gray-700 shadow-md shadow-gray-400'>
-              <div className='flex flex-col items-center gap-2.5'>
-                <span className='text-3xl font-medium'>
+              <div className='flex flex-col items-start gap-2.5'>
+                <span className='pl-1 text-3xl font-medium'>
                   {data?.firstName} {data?.lastName}
                 </span>
-                <div className='flex w-full items-center gap-5'>
+                <div className='flex w-full items-start gap-5'>
                   <div className='flex items-center gap-0.5 text-gray-500'>
                     <PlaceIcon />
-                    <span className='text-xs'>{data?.city}</span>
+                    <span className='text-sm'>
+                      {data?.city?.length ? data?.city : 'Unknown'}
+                    </span>
                   </div>
                   <div className='flex items-center gap-0.5 text-gray-500'>
                     <LanguageIcon />
-                    <span className='text-xs'>{data?.website}</span>
+                    <span className='text-sm'>
+                      {data?.website?.length ? data?.website : 'Unknown'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -105,11 +113,12 @@ export default function ProfileContent({ userId }: { userId: string }) {
                     {isFollowing ? 'Following' : 'Follow'}
                   </Button>
                 )}
-                <EmailOutlinedIcon
-                  className='cursor-pointer'
-                  onClick={() => router.push(`/test?targetUserId=${data?.id}`)}
-                />
-                {userId !== user?.userId && <MoreVertIcon />}
+                {data?.id !== user?.userId && (
+                  <EmailOutlinedIcon
+                    className='cursor-pointer'
+                    onClick={() => router.push(`/messages?userId=${data?.id}`)}
+                  />
+                )}
               </div>
             </div>
             <Posts userId={userId} />

@@ -1,31 +1,42 @@
 'use client'
 
-import { useState } from 'react'
+import { ChangeEvent, MouseEventHandler, useState } from 'react'
 
 import ImageImg from '../../public/img.png'
 import Map from '../../public/map.png'
 import Friend from '../../public/friend.png'
 import Image from 'next/image'
-import { Button } from '@mui/material'
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  NativeSelect,
+  Select,
+  SelectChangeEvent
+} from '@mui/material'
 import useUserStore from '@/core/stores/store'
 import uploadImage from '@/core/api/posts/uploadImage'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {
   createPost,
   CreatePostRequest,
-  PostCategory
+  PostCategory,
+  WorkExperience,
+  WorkIndustry
 } from '@/core/api/posts/createPost'
 import { toast } from 'sonner'
 import PersonIcon from '@mui/icons-material/Person'
 import getUserById from '@/core/api/user/getUserById'
 
 const Share = () => {
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState<File | null>(null)
   const [desc, setDesc] = useState('')
 
   const upload = async () => {
     try {
-      return await uploadImage(file)
+      return await uploadImage(file!)
     } catch (err) {
       console.log(err)
     }
@@ -35,7 +46,7 @@ const Share = () => {
 
   const { user } = useUserStore()
 
-  const handleFileChange = e => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0])
     }
@@ -55,20 +66,41 @@ const Share = () => {
     }
   })
 
-  const handleClick = async e => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     let imgUrl = ''
-    if (file) imgUrl = await upload()
+    if (file) {
+      const uploadResult = await upload()
+      imgUrl = uploadResult || ''
+    }
     if (imgUrl.startsWith('"') && imgUrl.endsWith('"')) {
       imgUrl = imgUrl.slice(1, -1)
     }
     mutation.mutate({
       description: desc,
       image: imgUrl,
-      category: PostCategory.Work
+      category: category,
+      workIndustry: workIndustry,
+      workExperience: workExperience
     })
     setDesc('')
     setFile(null)
+  }
+
+  const [category, setCategory] = useState(1)
+  const [workExperience, setWorkExperience] = useState(1)
+  const [workIndustry, setWorkIndustry] = useState(1)
+
+  const handleCategoryChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setCategory(parseInt(event.target.value))
+  }
+
+  const handleWorkIndustryChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setWorkIndustry(parseInt(event.target.value))
+  }
+
+  const handleExperienceChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setWorkExperience(parseInt(event.target.value))
   }
 
   return (
@@ -117,18 +149,70 @@ const Share = () => {
             />
             <label htmlFor='file'>
               <div className='flex cursor-pointer items-center gap-2.5'>
-                <Image width={20} height={20} src={ImageImg as string} alt='' />
+                <Image width={20} height={20} src={ImageImg} alt='' />
                 <span>Add Image</span>
               </div>
             </label>
-            <div className='flex cursor-pointer items-center gap-2.5'>
-              <Image width={20} height={20} src={Map as string} alt='' />
-              <span>Add Place</span>
-            </div>
-            <div className='flex cursor-pointer items-center gap-2.5'>
-              <Image width={20} height={20} src={Friend as string} alt='' />
-              <span>Tag Friends</span>
-            </div>
+
+            <NativeSelect
+              className='text-xs text-gray-400'
+              defaultValue={1}
+              inputProps={{
+                name: 'postCategory',
+                id: 'uncontrolled-native'
+              }}
+              onChange={handleCategoryChange}
+            >
+              <option value={1}>Work & Internships</option>
+              <option value={2}>Fun & Entertainment</option>
+            </NativeSelect>
+
+            {category === 1 && (
+              <>
+                {' '}
+                <NativeSelect
+                  className='text-xs text-gray-400'
+                  defaultValue={1}
+                  inputProps={{
+                    name: 'workExperience',
+                    id: 'uncontrolled-native'
+                  }}
+                  onChange={handleExperienceChange}
+                >
+                  {Object.keys(WorkExperience)
+                    .filter(key => isNaN(Number(key))) // Filter out the numeric keys (enum values) and only keep string keys (enum names)
+                    .map(key => (
+                      <option
+                        key={WorkExperience[key as keyof typeof WorkExperience]}
+                        value={
+                          WorkExperience[key as keyof typeof WorkExperience]
+                        }
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </option>
+                    ))}
+                </NativeSelect>
+                <NativeSelect
+                  className='text-xs text-gray-400'
+                  inputProps={{
+                    name: 'workIndustry',
+                    id: 'uncontrolled-native'
+                  }}
+                  onChange={handleWorkIndustryChange}
+                >
+                  {Object.keys(WorkIndustry)
+                    .filter(key => isNaN(Number(key))) // Filter out the numeric keys (enum values) and only keep string keys (enum names)
+                    .map(key => (
+                      <option
+                        key={WorkIndustry[key as keyof typeof WorkIndustry]}
+                        value={WorkIndustry[key as keyof typeof WorkIndustry]}
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </option>
+                    ))}
+                </NativeSelect>
+              </>
+            )}
           </div>
           <div>
             <Button

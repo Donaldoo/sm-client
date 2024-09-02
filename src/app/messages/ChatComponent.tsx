@@ -5,14 +5,28 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import useUserStore from '@/core/stores/store'
 import { Button } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import { useQuery, useQueryClient } from 'react-query'
+import getUserById from '@/core/api/user/getUserById'
 
-const ChatComponent = ({ chatId }: { chatId: string }) => {
+const ChatComponent = ({
+  chatId,
+  targetUserId
+}: {
+  chatId: string
+  targetUserId: string
+}) => {
   const [connection, setConnection] = useState<HubConnection>()
   const [messages, setMessages] = useState<
     { senderId: string; content: string; sentAt: string }[]
   >([])
   const { user } = useUserStore()
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  const { data: targetUser } = useQuery({
+    queryKey: ['targetUser', targetUserId],
+    queryFn: () => getUserById(targetUserId),
+    enabled: !!targetUserId
+  })
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
@@ -24,6 +38,8 @@ const ChatComponent = ({ chatId }: { chatId: string }) => {
 
     setConnection(newConnection)
   }, [])
+
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (connection) {
@@ -43,7 +59,11 @@ const ChatComponent = ({ chatId }: { chatId: string }) => {
               content: string
               sentAt: string
             }) => {
-              console.log('Received Message:', message)
+              if (message.senderId !== user?.userId) {
+                const audio = new Audio('/notification.mp3')
+                audio.play()
+              }
+              queryClient.invalidateQueries(['chats'])
               setMessages(prevMessages => [...prevMessages, message])
             }
           )
@@ -85,12 +105,14 @@ const ChatComponent = ({ chatId }: { chatId: string }) => {
   }, [messages])
 
   return (
-    <div className='flex h-full max-h-[60vh] w-3/5 flex-col'>
+    <div className='no-scrollbar flex h-full max-h-[75vh] w-3/5 flex-col justify-between overflow-scroll'>
       <div className='mb-5 flex items-center justify-between border-b border-gray-300 p-3'>
-        <span className='text-2xl font-medium'> John Doe</span>
+        <span className='text-2xl font-medium'>
+          {targetUser?.firstName} {targetUser?.lastName}
+        </span>
         <MoreVertIcon className='h-10 w-10' />
       </div>
-      <div className='mt-10 flex h-full flex-col items-center justify-between space-y-10 bg-white px-10 py-6'>
+      <div className='mt-10 flex flex-col items-center justify-between space-y-10 bg-white px-10 py-6'>
         <div className='no-scrollbar flex w-full flex-col gap-5 overflow-scroll'>
           {messages.map((m, i) => (
             <div

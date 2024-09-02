@@ -5,6 +5,7 @@ import getSuggestedUsers from '@/core/api/user/getSuggestedUsers'
 import { useRouter } from 'next/navigation'
 import { follow } from '@/core/api/posts/follow'
 import { useState } from 'react'
+import PersonIcon from '@mui/icons-material/Person'
 
 const RightBar = () => {
   const { data, isLoading } = useQuery({
@@ -44,11 +45,15 @@ const RightBar = () => {
                 className='relative flex cursor-pointer items-center gap-2 hover:text-gray-800'
                 onClick={() => router.push(`profile?userId=${user.id}`)}
               >
-                <img
-                  className='h-10 w-10 rounded-full object-cover'
-                  src={user.profilePicture}
-                  alt=''
-                />
+                {user.profilePicture?.length ? (
+                  <img
+                    className='h-10 w-10 rounded-full object-cover'
+                    src={user.profilePicture}
+                    alt=''
+                  />
+                ) : (
+                  <PersonIcon className='h-10 w-10 rounded-full bg-gray-200 object-cover' />
+                )}
                 <span>{user.displayName}</span>
               </div>
               <div className='flex items-center gap-[10px]'>
