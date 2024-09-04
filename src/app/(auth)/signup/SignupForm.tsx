@@ -99,7 +99,7 @@ const SignupForm = () => {
       />
       <Button
         type='submit'
-        className='w-1/2 cursor-pointer bg-purple-500 p-3 font-bold text-white hover:bg-purple-700'
+        className='w-1/2 cursor-pointer !bg-purple-500 !p-3 !font-bold !text-white hover:!bg-purple-700'
       >
         Register
       </Button>

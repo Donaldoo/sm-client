@@ -3,26 +3,14 @@
 import { ChangeEvent, MouseEventHandler, useState } from 'react'
 
 import ImageImg from '../../public/img.png'
-import Map from '../../public/map.png'
-import Friend from '../../public/friend.png'
 import Image from 'next/image'
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  NativeSelect,
-  Select,
-  SelectChangeEvent
-} from '@mui/material'
+import { Button, NativeSelect } from '@mui/material'
 import useUserStore from '@/core/stores/store'
 import uploadImage from '@/core/api/posts/uploadImage'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {
   createPost,
   CreatePostRequest,
-  PostCategory,
   WorkExperience,
   WorkIndustry
 } from '@/core/api/posts/createPost'
@@ -52,6 +40,14 @@ const Share = () => {
     }
   }
 
+  const handleRemoveFile = () => {
+    setFile(null)
+    const fileInput = document.getElementById('file') as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ''
+    }
+  }
+
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user', user?.userId],
     queryFn: () => getUserById(user!.userId),
@@ -63,6 +59,10 @@ const Share = () => {
     onSuccess: () => {
       toast.success('Post successfully created!')
       queryClient.invalidateQueries(['posts'])
+      const fileInput = document.getElementById('file') as HTMLInputElement
+      if (fileInput) {
+        fileInput.value = ''
+      }
     }
   })
 
@@ -76,13 +76,16 @@ const Share = () => {
     if (imgUrl.startsWith('"') && imgUrl.endsWith('"')) {
       imgUrl = imgUrl.slice(1, -1)
     }
-    mutation.mutate({
+    const data: CreatePostRequest = {
       description: desc,
       image: imgUrl,
-      category: category,
-      workIndustry: workIndustry,
-      workExperience: workExperience
-    })
+      category: category
+    }
+    if (category === 1) {
+      data.workIndustry = workIndustry
+      data.workExperience = workExperience
+    }
+    mutation.mutate(data)
     setDesc('')
     setFile(null)
   }
@@ -128,11 +131,19 @@ const Share = () => {
           </div>
           <div className='flex flex-1 justify-end'>
             {file && (
-              <img
-                className='h-[100px] w-[100px] object-cover'
-                alt=''
-                src={URL.createObjectURL(file)}
-              />
+              <>
+                <img
+                  className='h-[100px] w-[100px] object-cover'
+                  alt=''
+                  src={URL.createObjectURL(file)}
+                />
+                <button
+                  onClick={handleRemoveFile}
+                  className='absolute flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 p-3 text-lg font-medium text-gray-700'
+                >
+                  x
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -142,6 +153,7 @@ const Share = () => {
             <input
               type='file'
               id='file'
+              accept='image/*'
               style={{ display: 'none' }}
               onChange={e => {
                 handleFileChange(e)
@@ -215,13 +227,15 @@ const Share = () => {
             )}
           </div>
           <div>
-            <Button
-              className='bg-blue-500 text-sm text-white hover:bg-blue-700'
-              style={{ textTransform: 'none' }}
-              onClick={handleClick}
-            >
-              Share
-            </Button>
+            {!!(desc.length || file) && (
+              <Button
+                className='!bg-blue-500 !text-sm !text-white hover:!bg-blue-700'
+                style={{ textTransform: 'none' }}
+                onClick={handleClick}
+              >
+                Share
+              </Button>
+            )}
           </div>
         </div>
       </div>

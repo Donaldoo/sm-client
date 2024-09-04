@@ -5,7 +5,7 @@ import { UserData } from '@/core/api/auth/postLogin'
 
 interface UserStore {
   user: UserData | null
-  setUser: (user: UserData) => void
+  setUser: (user: UserData | null) => void
   messageCount: number
   setMessageCount: (count: number) => void
 }
@@ -14,7 +14,7 @@ const useUserStore = create<UserStore>()(
   persist(
     set => ({
       user: null,
-      setUser: (user: UserData) =>
+      setUser: (user: UserData | null) =>
         set(() => ({
           user: user
         })),

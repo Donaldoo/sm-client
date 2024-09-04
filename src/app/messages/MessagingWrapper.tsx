@@ -15,11 +15,8 @@ const MessagingWrapper = ({ targetUserId }: { targetUserId: string }) => {
     onSuccess: (res: string) => setChatId(res)
   })
 
-  let i = useRef(0)
-
   useEffect(() => {
     getOrCreateChat.mutate(targetUserId)
-    console.log((i.current += 1))
   }, [targetUserId])
 
   if (!chatId) {

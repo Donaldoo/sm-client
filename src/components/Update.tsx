@@ -103,7 +103,7 @@ export default function Update({
       <div className='relative m-auto flex w-2/5 flex-col gap-4 bg-white p-[30px] shadow-md shadow-gray-400'>
         <div className='mb-5 flex w-full flex-row-reverse justify-between'>
           <Button
-            className='border-0 bg-red-500 p-[5px] text-white hover:bg-red-700'
+            className='border-0 !bg-red-500 !p-[5px] !text-white hover:!bg-red-700'
             onClick={() => setOpenUpdate(false)}
           >
             Close
@@ -143,6 +143,7 @@ export default function Update({
               <input
                 className='border-b border-gray-300 bg-transparent p-[5px] text-gray-700 outline-0'
                 type='file'
+                accept='image/*'
                 id='profilePicture'
                 style={{ display: 'none' }}
                 onChange={e => {
@@ -167,6 +168,7 @@ export default function Update({
               </label>
               <input
                 type='file'
+                accept='image/*'
                 id='coverPicture'
                 style={{ display: 'none' }}
                 className='border-b border-gray-300 bg-transparent p-[5px] text-gray-700'
@@ -229,7 +231,7 @@ export default function Update({
               className='w-full border-b border-gray-300 bg-transparent p-[5px] text-gray-700 outline-0'
             />
             <Button
-              className='w-1/4 justify-center self-center bg-blue-500 text-white hover:bg-blue-700'
+              className='w-1/4 justify-center self-center !bg-blue-500 !text-white hover:!bg-blue-700'
               type='submit'
             >
               Update

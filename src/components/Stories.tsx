@@ -69,6 +69,7 @@ const Stories = () => {
         )}
         <input
           type='file'
+          accept='image/*'
           id='image'
           style={{ display: 'none' }}
           onChange={e => {

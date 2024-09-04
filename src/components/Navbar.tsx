@@ -12,17 +12,29 @@ import { useRouter } from 'next/navigation'
 import { useQuery } from 'react-query'
 import getUserById from '@/core/api/user/getUserById'
 import PersonIcon from '@mui/icons-material/Person'
+import React, { useState } from 'react'
+import searchUsers from '@/core/api/user/searchUsers'
+import SearchResults from '@/components/SearchResults'
+import useNotificationHub from '@/core/hooks/useNotificationHub'
 
 function Navbar() {
   const router = useRouter()
+  const { user, setUser } = useUserStore()
   const handleLogout = () => {
     localStorage.clear()
     document.cookie =
       'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
+    setUser(null)
     router.push('/login')
   }
 
-  const { user } = useUserStore()
+  const [search, setSearch] = useState('')
+
+  const { data: searchedUser } = useQuery({
+    queryKey: ['searchedUser', search],
+    queryFn: () => searchUsers(search),
+    enabled: !!search
+  })
 
   const { data: currentUser, isLoading } = useQuery({
     queryKey: ['user', user?.userId],
@@ -30,49 +42,76 @@ function Navbar() {
     enabled: !!user?.userId
   })
 
+  const [showSearch, setShowSearch] = useState(false)
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearch(value)
+    setShowSearch(!!value) // Show search results if input is not empty
+  }
+
+  useNotificationHub(user?.userId ?? '')
+
   return (
-    <div className='sticky top-0 z-[999] flex items-center justify-between border-b bg-white px-5 py-3 shadow-sm shadow-gray-400'>
-      <div className='flex items-center gap-8'>
-        <Link href='/' style={{ textDecoration: 'none' }}>
-          <span className='text-4xl font-bold'>UniLink</span>
-        </Link>
-        <HomeOutlinedIcon
-          fontSize='large'
-          className='cursor-pointer'
-          onClick={() => router.push('/')}
-        />
-        <div className='flex items-center gap-4 rounded border p-3'>
-          <SearchOutlinedIcon />
-          <input className='outline-0' type='text' placeholder='Search...' />
+    !!user?.userId && (
+      <div className='sticky top-0 z-[999] flex items-center justify-between border-b bg-white px-5 py-3 shadow-sm shadow-gray-400'>
+        <div className='flex items-center gap-8'>
+          <Link href='/' style={{ textDecoration: 'none' }}>
+            <span className='text-4xl font-bold'>UniLink</span>
+          </Link>
+          <HomeOutlinedIcon
+            fontSize='large'
+            className='cursor-pointer'
+            onClick={() => router.push('/')}
+          />
+
+          <div className='flex w-[300px] flex-col'>
+            <div className='flex items-center gap-4 rounded border p-3'>
+              <SearchOutlinedIcon />
+              <input
+                className='outline-0'
+                type='text'
+                value={search}
+                onChange={handleSearchChange}
+                placeholder='Search...'
+              />
+            </div>
+            {showSearch && (
+              <SearchResults
+                setShowSearch={setShowSearch}
+                data={searchedUser}
+              />
+            )}
+          </div>
+        </div>
+        <div className='flex items-center gap-5'>
+          <div className='flex items-center gap-3 font-medium'>
+            {currentUser?.profilePicture?.length ? (
+              <img
+                className='h-8 w-8 rounded-full object-cover'
+                src={currentUser?.profilePicture}
+                alt=''
+              />
+            ) : (
+              <PersonIcon className='h-8 w-8 rounded-full bg-gray-200 object-cover' />
+            )}
+            <span
+              className='cursor-pointer text-xl font-bold'
+              onClick={() => router.push(`/profile?userId=${user?.userId}`)}
+            >
+              {currentUser?.firstName} {currentUser?.lastName}
+            </span>
+          </div>
+          {/*<PersonOutlinedIcon />*/}
+          <EmailOutlinedIcon
+            onClick={() => router.push('/messages')}
+            className='cursor-pointer'
+          />
+          {/*<NotificationsOutlinedIcon />*/}
+          <ExitToAppIcon onClick={handleLogout} className='cursor-pointer' />
         </div>
       </div>
-      <div className='flex items-center gap-5'>
-        <div className='flex items-center gap-3 font-medium'>
-          {currentUser?.profilePicture?.length ? (
-            <img
-              className='h-8 w-8 rounded-full object-cover'
-              src={currentUser?.profilePicture}
-              alt=''
-            />
-          ) : (
-            <PersonIcon className='h-8 w-8 rounded-full bg-gray-200 object-cover' />
-          )}
-          <span
-            className='cursor-pointer text-xl font-bold'
-            onClick={() => router.push(`/profile?userId=${user?.userId}`)}
-          >
-            {currentUser?.firstName} {currentUser?.lastName}
-          </span>
-        </div>
-        <PersonOutlinedIcon />
-        <EmailOutlinedIcon
-          onClick={() => router.push('/messages')}
-          className='cursor-pointer'
-        />
-        <NotificationsOutlinedIcon />
-        <ExitToAppIcon onClick={handleLogout} className='cursor-pointer' />
-      </div>
-    </div>
+    )
   )
 }
 

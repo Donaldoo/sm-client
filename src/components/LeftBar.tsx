@@ -53,7 +53,10 @@ const LeftBar = () => {
     <div className='sticky top-[70px] hidden w-1/6 bg-white sm:flex'>
       <div className='p-5'>
         <div className='flex flex-col gap-5 text-sm'>
-          <div className='flex items-center gap-3'>
+          <div
+            className='flex cursor-pointer items-center gap-3'
+            onClick={() => router.push(`/profile?userId=${user?.userId}`)}
+          >
             {data?.profilePicture?.length ? (
               <img
                 src={data?.profilePicture}

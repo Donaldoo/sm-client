@@ -43,7 +43,7 @@ export default function FormInput(props: FormInputProps) {
       ) : null}
       <Controller
         {...props}
-        defaultValue={defaultValue}
+        defaultValue={defaultValue ?? ''}
         render={({ field }) => (
           <div className='w-full space-y-2'>
             {error && error.message ? (

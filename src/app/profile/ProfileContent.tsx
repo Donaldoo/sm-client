@@ -100,7 +100,7 @@ export default function ProfileContent({ userId }: { userId: string }) {
                   'loading'
                 ) : userId === user?.userId ? (
                   <Button
-                    className='cursor-pointer rounded-[5px] bg-blue-500 px-4 py-2.5 text-white hover:bg-blue-700'
+                    className='cursor-pointer !rounded-[5px] !bg-blue-500 !px-4 !py-2.5 !text-white hover:!bg-blue-700'
                     onClick={() => setOpenUpdate(true)}
                   >
                     update
@@ -108,7 +108,7 @@ export default function ProfileContent({ userId }: { userId: string }) {
                 ) : (
                   <Button
                     onClick={() => handleFollow.mutate(userId)}
-                    className='cursor-pointer rounded-[5px] bg-blue-500 px-4 py-2.5 text-white hover:bg-blue-700'
+                    className='cursor-pointer !rounded-[5px] !bg-blue-500 !px-4 !py-2.5 !text-white hover:!bg-blue-700'
                   >
                     {isFollowing ? 'Following' : 'Follow'}
                   </Button>

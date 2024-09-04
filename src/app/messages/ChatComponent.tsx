@@ -1,6 +1,10 @@
 'use client'
 
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr'
+import {
+  HubConnection,
+  HubConnectionBuilder,
+  HubConnectionState
+} from '@microsoft/signalr'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import useUserStore from '@/core/stores/store'
 import { Button } from '@mui/material'
@@ -20,7 +24,10 @@ const ChatComponent = ({
     { senderId: string; content: string; sentAt: string }[]
   >([])
   const { user } = useUserStore()
+  const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  const [isInChat, setIsInChat] = useState(false)
 
   const { data: targetUser } = useQuery({
     queryKey: ['targetUser', targetUserId],
@@ -39,59 +46,100 @@ const ChatComponent = ({
     setConnection(newConnection)
   }, [])
 
-  const queryClient = useQueryClient()
+  useEffect(() => {
+    // Create a new connection only once
+    const newConnection = new HubConnectionBuilder()
+      .withUrl('http://localhost:5031/chathub', {
+        withCredentials: true
+      })
+      .withAutomaticReconnect()
+      .build()
+
+    setConnection(newConnection)
+
+    return () => {
+      if (newConnection.state === HubConnectionState.Connected) {
+        newConnection.stop()
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (connection) {
-      connection
-        .start()
-        .then(async () => {
-          console.log('Connected!')
+      const startConnection = async () => {
+        if (connection.state === HubConnectionState.Disconnected) {
+          try {
+            await connection.start()
+            console.log('Connected!')
 
-          await connection.send('JoinChat', chatId)
+            await connection.send('JoinChat', chatId, user?.userId)
+            await connection.send('GetChatHistory', chatId)
 
-          await connection.send('GetChatHistory', chatId)
-
-          connection.on(
-            'ReceiveMessage',
-            (message: {
-              senderId: string
-              content: string
-              sentAt: string
-            }) => {
-              if (message.senderId !== user?.userId) {
-                const audio = new Audio('/notification.mp3')
-                audio.play()
-              }
-              queryClient.invalidateQueries(['chats'])
-              setMessages(prevMessages => [...prevMessages, message])
-            }
-          )
-
-          connection.on(
-            'ReceiveChatHistory',
-            (
-              chatMessages: {
+            connection.on(
+              'ReceiveMessage',
+              async (message: {
                 senderId: string
                 content: string
                 sentAt: string
-              }[]
-            ) => {
-              console.log('Received Chat History:', chatMessages)
-              setMessages(chatMessages)
-            }
-          )
-        })
-        .catch(e => console.log('Connection failed: ', e))
+              }) => {
+                queryClient.invalidateQueries(['chats'])
+
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    ...message
+                  }
+                ])
+
+                if (message.senderId !== user?.userId) {
+                  const audio = new Audio('/notification.mp3')
+                  audio.play()
+                }
+              }
+            )
+
+            connection.on(
+              'ReceiveChatHistory',
+              (
+                chatMessages: {
+                  senderId: string
+                  content: string
+                  sentAt: string
+                  isRead: boolean
+                }[]
+              ) => {
+                console.log('Received Chat History:', chatMessages)
+                setMessages(chatMessages)
+              }
+            )
+          } catch (e) {
+            console.log('Connection failed: ', e)
+          }
+        }
+      }
+
+      if (connection.state === HubConnectionState.Disconnected) {
+        setIsInChat(false)
+        startConnection()
+      }
+
+      return () => {
+        if (connection.state === HubConnectionState.Connected) {
+          setIsInChat(false)
+          connection.stop()
+        }
+      }
     }
-  }, [connection, chatId])
+  }, [connection, chatId, targetUserId, isInChat])
 
   const [message, setMessage] = useState('')
 
   const sendMessage = async () => {
-    if (connection && message) {
+    if (connection?.state === HubConnectionState.Connected && message) {
       await connection.send('SendMessage', chatId, user?.userId, message)
       setMessage('')
+    } else {
+      console.log('Connection not established yet.')
     }
   }
 
@@ -146,7 +194,7 @@ const ChatComponent = ({
             placeholder='Type your message...'
           />
           <Button
-            className='bg-blue-500 text-white hover:bg-blue-700'
+            className='!bg-blue-500 !text-white hover:!bg-blue-700'
             type='submit'
           >
             Send

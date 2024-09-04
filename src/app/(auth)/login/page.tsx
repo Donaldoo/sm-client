@@ -16,7 +16,7 @@ const LoginPage = () => {
           </p>
           <span className='text-sm'>Don&apos;t you have an account?</span>
           <Link href='/signup'>
-            <Button className='w-1/2 cursor-pointer bg-gray-200 p-3 font-bold text-purple-700 hover:bg-white'>
+            <Button className='w-1/2 cursor-pointer !bg-gray-200 !p-3 !font-bold !text-purple-700 hover:!bg-white'>
               Register
             </Button>
           </Link>
