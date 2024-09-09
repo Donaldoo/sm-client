@@ -51,7 +51,7 @@ const LeftBar = () => {
 
   return (
     <div className='sticky top-[70px] hidden w-1/6 bg-white sm:flex'>
-      <div className='p-5'>
+      <div className='w-full p-5'>
         <div className='flex flex-col gap-5 text-sm'>
           <div
             className='flex cursor-pointer items-center gap-3'
@@ -75,7 +75,15 @@ const LeftBar = () => {
         </div>
         <hr className='my-5 h-[0.5px] w-full bg-gray-500' />
         <div className='flex flex-col gap-5 text-sm'>
-          <span className='text-lg font-medium'>Work posts</span>
+          <div className='flex w-full justify-between'>
+            <span className='text-lg font-medium'>Work posts</span>
+            <button
+              className='w-1/3 cursor-pointer rounded-sm bg-gray-100 px-3 py-1 text-gray-700 hover:bg-gray-200'
+              onClick={() => router.push('/')}
+            >
+              View all
+            </button>
+          </div>
           <div
             className='flex cursor-pointer items-center gap-3'
             onClick={() => handleWorkCategory('1')}

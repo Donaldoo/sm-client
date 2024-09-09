@@ -1,16 +1,12 @@
 'use client'
 
-import {
-  HubConnection,
-  HubConnectionBuilder,
-  HubConnectionState
-} from '@microsoft/signalr'
-import { FormEvent, useEffect, useRef, useState } from 'react'
 import useUserStore from '@/core/stores/store'
 import { Button } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useQuery, useQueryClient } from 'react-query'
 import getUserById from '@/core/api/user/getUserById'
+import useChatHub from '@/core/hooks/useChatHub'
+import { useEffect, useRef, useState } from 'react'
 
 const ChatComponent = ({
   chatId,
@@ -19,15 +15,20 @@ const ChatComponent = ({
   chatId: string
   targetUserId: string
 }) => {
-  const [connection, setConnection] = useState<HubConnection>()
-  const [messages, setMessages] = useState<
-    { senderId: string; content: string; sentAt: string }[]
-  >([])
   const { user } = useUserStore()
   const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
-  const [isInChat, setIsInChat] = useState(false)
+  const [token, setToken] = useState<string | null>(null)
+
+  useEffect(() => {
+    const tokenFromStorage = localStorage.getItem('token')
+    setToken(tokenFromStorage)
+  }, [])
+
+  const { messages, joinChat, leaveChat, sendMessage, isConnectionReady } =
+    useChatHub(user?.userId ?? '', token)
+  const [message, setMessage] = useState('')
 
   const { data: targetUser } = useQuery({
     queryKey: ['targetUser', targetUserId],
@@ -36,116 +37,25 @@ const ChatComponent = ({
   })
 
   useEffect(() => {
-    const newConnection = new HubConnectionBuilder()
-      .withUrl('http://localhost:5031/chathub', {
-        withCredentials: true
-      })
-      .withAutomaticReconnect()
-      .build()
-
-    setConnection(newConnection)
-  }, [])
-
-  useEffect(() => {
-    // Create a new connection only once
-    const newConnection = new HubConnectionBuilder()
-      .withUrl('http://localhost:5031/chathub', {
-        withCredentials: true
-      })
-      .withAutomaticReconnect()
-      .build()
-
-    setConnection(newConnection)
-
-    return () => {
-      if (newConnection.state === HubConnectionState.Connected) {
-        newConnection.stop()
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (connection) {
-      const startConnection = async () => {
-        if (connection.state === HubConnectionState.Disconnected) {
-          try {
-            await connection.start()
-            console.log('Connected!')
-
-            await connection.send('JoinChat', chatId, user?.userId)
-            await connection.send('GetChatHistory', chatId)
-
-            connection.on(
-              'ReceiveMessage',
-              async (message: {
-                senderId: string
-                content: string
-                sentAt: string
-              }) => {
-                queryClient.invalidateQueries(['chats'])
-
-                setMessages(prev => [
-                  ...prev,
-                  {
-                    ...message
-                  }
-                ])
-
-                if (message.senderId !== user?.userId) {
-                  const audio = new Audio('/notification.mp3')
-                  audio.play()
-                }
-              }
-            )
-
-            connection.on(
-              'ReceiveChatHistory',
-              (
-                chatMessages: {
-                  senderId: string
-                  content: string
-                  sentAt: string
-                  isRead: boolean
-                }[]
-              ) => {
-                console.log('Received Chat History:', chatMessages)
-                setMessages(chatMessages)
-              }
-            )
-          } catch (e) {
-            console.log('Connection failed: ', e)
-          }
-        }
-      }
-
-      if (connection.state === HubConnectionState.Disconnected) {
-        setIsInChat(false)
-        startConnection()
-      }
+    if (isConnectionReady && chatId) {
+      console.log(`Attempting to join chat: ${chatId}`)
+      joinChat(chatId)
+      queryClient.invalidateQueries(['unreadMessages'])
 
       return () => {
-        if (connection.state === HubConnectionState.Connected) {
-          setIsInChat(false)
-          connection.stop()
-        }
+        leaveChat(chatId)
       }
     }
-  }, [connection, chatId, targetUserId, isInChat])
+  }, [chatId, joinChat, leaveChat, isConnectionReady])
 
-  const [message, setMessage] = useState('')
+  const handleSendMessage = (e: any) => {
+    e.preventDefault()
 
-  const sendMessage = async () => {
-    if (connection?.state === HubConnectionState.Connected && message) {
-      await connection.send('SendMessage', chatId, user?.userId, message)
+    if (message) {
+      sendMessage(chatId, user!.userId, message)
       setMessage('')
-    } else {
-      console.log('Connection not established yet.')
     }
-  }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    sendMessage()
+    queryClient.invalidateQueries(['chats'])
   }
 
   useEffect(() => {
@@ -178,14 +88,20 @@ const ChatComponent = ({
               >
                 <div>{m.content}</div>
                 <div className='text-sm'>
-                  {new Date(m.sentAt).toLocaleTimeString()}
+                  {new Date(m.sentAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </div>
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} /> {/* Empty div for scrolling */}
         </div>
-        <form onSubmit={handleSubmit} className='flex w-full justify-between'>
+        <form
+          onSubmit={handleSendMessage}
+          className='flex w-full justify-between'
+        >
           <input
             type='text'
             value={message}

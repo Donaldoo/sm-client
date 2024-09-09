@@ -29,19 +29,20 @@ const Posts = ({
         workExperience: parseInt(workExperience ?? ''),
         workIndustry: parseInt(workIndustry ?? ''),
         category: parseInt(category ?? '')
+      }),
+    onSuccess: () => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo(0, window.scrollY)
       })
+    }
   })
   return (
     <div className='flex flex-col gap-[35px]'>
-      {error ? (
-        'Something went wrong!'
-      ) : isLoading ? (
-        <CircularProgress className='self-center' />
-      ) : posts && posts.length > 0 ? (
+      {posts && posts.length > 0 ? (
         posts.map(post => <Post post={post} key={post.id} />)
       ) : (
         <div className='self-center p-5 text-lg font-medium text-gray-600'>
-          No posts found!
+          No posts yet!
         </div>
       )}
     </div>

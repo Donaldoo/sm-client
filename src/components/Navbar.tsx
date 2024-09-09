@@ -2,9 +2,7 @@
 
 import Link from 'next/link'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
-import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
 import ExitToAppIcon from '@mui/icons-material/ExitToAppOutlined'
 import useUserStore from '@/core/stores/store'
@@ -12,19 +10,30 @@ import { useRouter } from 'next/navigation'
 import { useQuery } from 'react-query'
 import getUserById from '@/core/api/user/getUserById'
 import PersonIcon from '@mui/icons-material/Person'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import searchUsers from '@/core/api/user/searchUsers'
 import SearchResults from '@/components/SearchResults'
 import useNotificationHub from '@/core/hooks/useNotificationHub'
+import getAllUnreadMessages from '@/core/api/chat/getAllUnreadMessages'
+import UnreadMessages from '@/components/UnreadMessages'
+import useChatHub from '@/core/hooks/useChatHub'
 
 function Navbar() {
   const router = useRouter()
   const { user, setUser } = useUserStore()
+
+  const [token, setToken] = useState<string | null>(null)
+  useEffect(() => {
+    const tokenFromStorage = localStorage.getItem('token')
+    setToken(tokenFromStorage)
+  }, [user])
+
   const handleLogout = () => {
     localStorage.clear()
     document.cookie =
       'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
     setUser(null)
+    setToken(null)
     router.push('/login')
   }
 
@@ -43,14 +52,35 @@ function Navbar() {
   })
 
   const [showSearch, setShowSearch] = useState(false)
+  const [showMessages, setShowMessages] = useState(false)
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearch(value)
-    setShowSearch(!!value) // Show search results if input is not empty
+    setShowSearch(!!value)
   }
 
-  useNotificationHub(user?.userId ?? '')
+  useEffect(() => {
+    const tokenFromStorage = localStorage.getItem('token')
+    setToken(tokenFromStorage)
+  }, [user])
+
+  useNotificationHub(user?.userId ?? '', token)
+  useChatHub(user?.userId ?? '', token)
+
+  const { data: unreadMessages } = useQuery({
+    queryKey: ['unreadMessages'],
+    queryFn: () => getAllUnreadMessages(user!.userId),
+    enabled: !!user?.userId
+  })
+
+  const totalUnreadMessages =
+    unreadMessages && Array.isArray(unreadMessages)
+      ? unreadMessages.reduce(
+          (sum, message) => sum + (message.unreadMessageCount || 0),
+          0
+        )
+      : 0
 
   return (
     !!user?.userId && (
@@ -104,9 +134,20 @@ function Navbar() {
           </div>
           {/*<PersonOutlinedIcon />*/}
           <EmailOutlinedIcon
-            onClick={() => router.push('/messages')}
+            onClick={() => setShowMessages(!showMessages)}
             className='cursor-pointer'
           />
+          {totalUnreadMessages > 0 && (
+            <span className='absolute right-14 top-5 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 p-2 text-xs text-white'>
+              {totalUnreadMessages}
+            </span>
+          )}
+          {showMessages && (
+            <UnreadMessages
+              messages={unreadMessages || []}
+              setShowMessages={setShowMessages}
+            />
+          )}
           {/*<NotificationsOutlinedIcon />*/}
           <ExitToAppIcon onClick={handleLogout} className='cursor-pointer' />
         </div>

@@ -52,8 +52,6 @@ export default function Update({
     enabled: !!user!.id
   })
 
-  const { setUser } = useUserStore()
-
   const editUserMutation = useMutation({
     mutationFn: (req: EditAccountRequest) => editAccount(req),
     onSuccess: () => {
@@ -222,12 +220,12 @@ export default function Update({
               className='w-full border-b border-gray-300 bg-transparent p-[5px] text-gray-700 outline-0'
             />
             <FormInput
-              defaultValue={data?.website}
-              label='Website'
+              defaultValue={data?.bio}
+              label='Bio'
               control={control}
               errors={errors}
               type='text'
-              name='website'
+              name='bio'
               className='w-full border-b border-gray-300 bg-transparent p-[5px] text-gray-700 outline-0'
             />
             <Button

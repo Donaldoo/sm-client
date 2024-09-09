@@ -34,10 +34,12 @@ const LoginForm = () => {
   const login = useMutation({
     mutationFn: (data: LoginRequest) => postLogin(data),
     onSuccess: (data: LoginResponse) => {
+      document.cookie = `authToken=${data.token}; path=/;`
       setUser(data.user)
       localStorage.setItem('token', data.token)
-      document.cookie = `authToken=${data.token}; path=/;`
-      router.push('/')
+      setTimeout(() => {
+        router.push('/')
+      }, 200)
     },
     onError: (err: TypeError) => {
       toast.error(err.message)

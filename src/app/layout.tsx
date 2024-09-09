@@ -6,7 +6,8 @@ import Provider from '@/utils/Providers'
 
 export const metadata: Metadata = {
   title: 'UniLink',
-  description: 'Social media for students'
+  description: 'Social media for students',
+  icons: [{ rel: 'icon', url: '/2.png' }]
 }
 
 export default function RootLayout({

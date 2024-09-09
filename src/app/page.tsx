@@ -1,7 +1,6 @@
 import LeftBar from '@/components/LeftBar'
 import RightBar from '@/components/RightBar'
 import HomeContent from '@/components/HomeContent'
-import Post from '@/components/Post'
 import SinglePost from '@/components/SinglePost'
 
 export default function Home({

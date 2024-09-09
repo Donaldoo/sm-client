@@ -4,12 +4,14 @@ export interface User {
   id: string
   firstName: string
   lastName: string
-  website: string
+  bio: string
   city: string
   profilePicture: string
   coverPicture: string
   password: string
   email: string
+  followingCount: number
+  followersCount: number
 }
 
 export default function getUserById(userId: string): Promise<User> {

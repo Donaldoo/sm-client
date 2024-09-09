@@ -7,6 +7,7 @@ export interface ChatDto {
   profilePicture: string
   lastMessage: string
   lastMessageSentAt: string
+  isOnline: boolean
 }
 
 export default function getAllChats(search?: string): Promise<ChatDto[]> {

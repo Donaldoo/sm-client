@@ -9,8 +9,17 @@ import {
   CreateCommentRequest
 } from '@/core/api/posts/createComment'
 import deleteComment from '@/core/api/posts/deleteComment'
+import useUserStore from '@/core/stores/store'
+import getUserById from '@/core/api/user/getUserById'
+import PersonIcon from '@mui/icons-material/Person'
 
 const Comments = ({ postId }: { postId: string }) => {
+  const { user } = useUserStore()
+  const { data: fetchedUser } = useQuery({
+    queryKey: ['user', user?.userId],
+    queryFn: () => getUserById(user!.userId),
+    enabled: !!user?.userId
+  })
   const { data, isLoading, error } = useQuery({
     queryKey: ['comments', postId],
     queryFn: () => getComments(postId),
@@ -24,7 +33,7 @@ const Comments = ({ postId }: { postId: string }) => {
     onSuccess: () => queryClient.invalidateQueries(['comments'])
   })
 
-  const handleClick = async e => {
+  const handleClick = async (e: any) => {
     e.preventDefault()
     postComment.mutate({ postId: postId, description: desc })
     setDesc('')
@@ -38,13 +47,15 @@ const Comments = ({ postId }: { postId: string }) => {
   return (
     <div>
       <div className='my-5 flex items-center justify-between gap-5'>
-        <img
-          className='h-10 w-10 rounded-full object-cover'
-          src={
-            'https://pics.craiyon.com/2023-05-31/220e4c73f6674d46a84840ebde9f9bc8.webp'
-          }
-          alt=''
-        />
+        {fetchedUser?.profilePicture ? (
+          <img
+            className='h-10 w-10 rounded-full object-cover'
+            src={fetchedUser?.profilePicture}
+            alt=''
+          />
+        ) : (
+          <PersonIcon className='h-10 w-10 rounded-full bg-gray-200' />
+        )}
         <input
           className='flex-[5] border border-gray-300 bg-transparent p-2.5 text-gray-700 outline-0'
           type='text'
@@ -72,13 +83,15 @@ const Comments = ({ postId }: { postId: string }) => {
                 key={comment.commentId}
                 className='my-[30px] flex justify-between gap-5'
               >
-                <img
-                  className='h-10 w-10 rounded-full object-cover'
-                  src={
-                    'https://pics.craiyon.com/2023-05-31/220e4c73f6674d46a84840ebde9f9bc8.webp'
-                  }
-                  alt=''
-                />
+                {comment.userImage ? (
+                  <img
+                    className='h-10 w-10 rounded-full object-cover'
+                    src={comment.userImage}
+                    alt=''
+                  />
+                ) : (
+                  <PersonIcon className='h-10 w-10 rounded-full bg-gray-200' />
+                )}
                 <div className='flex flex-[5] flex-col items-start gap-[3px]'>
                   <span className='font-medium'>{comment.userName}</span>
                   <p className='text-gray-500'>{comment.description}</p>

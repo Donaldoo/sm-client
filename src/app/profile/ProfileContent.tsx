@@ -1,14 +1,11 @@
 'use client'
 
-import PlaceIcon from '@mui/icons-material/Place'
-import LanguageIcon from '@mui/icons-material/Language'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import getUserById from '@/core/api/user/getUserById'
 import useUserStore from '@/core/stores/store'
 import { useState } from 'react'
 import Update from '@/components/Update'
-import { Button, CircularProgress } from '@mui/material'
+import { Box, Button, CircularProgress, Modal } from '@mui/material'
 import Posts from '@/components/Posts'
 import PersonIcon from '@mui/icons-material/Person'
 import getUserFollowing from '@/core/api/user/getUserFollowing'
@@ -16,6 +13,7 @@ import { follow } from '@/core/api/posts/follow'
 import { unfollow } from '@/core/api/posts/unfollow'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import { useRouter } from 'next/navigation'
+import RelationshipsModal from '@/app/profile/RelationshipsModal'
 
 export default function ProfileContent({ userId }: { userId: string }) {
   const [openUpdate, setOpenUpdate] = useState(false)
@@ -35,18 +33,21 @@ export default function ProfileContent({ userId }: { userId: string }) {
     enabled: !!userId
   })
 
-  const isFollowing = followingData?.some(following => following === userId)
+  const isFollowing = followingData?.some(following => following.id === userId)
 
   const handleFollow = useMutation({
     mutationFn: (userId: string) =>
       isFollowing ? unfollow(userId) : follow(userId),
     onSuccess: () => {
       queryClient.invalidateQueries(['followingData'])
-      queryClient.invalidateQueries(['suggestedUsers'])
+      queryClient.invalidateQueries(['user', userId])
     }
   })
 
   const router = useRouter()
+  const [openModal, setOpenModal] = useState(false)
+
+  const [following, setFollowing] = useState(false)
 
   return (
     <div className='no-scrollbar max-h-[92vh] w-2/3 overflow-scroll bg-gray-50'>
@@ -77,48 +78,78 @@ export default function ProfileContent({ userId }: { userId: string }) {
           <div className='space-y-[35px] px-[70px] py-5'>
             <div className='flex h-[180px] items-center justify-between rounded-2xl bg-white p-12 text-gray-700 shadow-md shadow-gray-400'>
               <div className='flex flex-col items-start gap-2.5'>
-                <span className='pl-1 text-3xl font-medium'>
+                <span className='text-3xl font-medium'>
                   {data?.firstName} {data?.lastName}
                 </span>
-                <div className='flex w-full items-start gap-5'>
-                  <div className='flex items-center gap-0.5 text-gray-500'>
-                    <PlaceIcon />
+                <div className='flex w-full flex-col items-start gap-5'>
+                  <div className='flex items-start gap-2 text-gray-500'>
+                    <span className='flex w-1/2 flex-wrap text-sm'>
+                      {data?.bio?.length ? data?.bio : 'Unknown'}
+                    </span>
+                  </div>
+
+                  <div className='flex items-center gap-2 text-gray-500'>
                     <span className='text-sm'>
                       {data?.city?.length ? data?.city : 'Unknown'}
                     </span>
                   </div>
-                  <div className='flex items-center gap-0.5 text-gray-500'>
-                    <LanguageIcon />
-                    <span className='text-sm'>
-                      {data?.website?.length ? data?.website : 'Unknown'}
-                    </span>
-                  </div>
                 </div>
               </div>
-              <div className='flex items-center justify-end gap-2.5'>
-                {isLoading ? (
-                  'loading'
-                ) : userId === user?.userId ? (
-                  <Button
-                    className='cursor-pointer !rounded-[5px] !bg-blue-500 !px-4 !py-2.5 !text-white hover:!bg-blue-700'
-                    onClick={() => setOpenUpdate(true)}
-                  >
-                    update
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => handleFollow.mutate(userId)}
-                    className='cursor-pointer !rounded-[5px] !bg-blue-500 !px-4 !py-2.5 !text-white hover:!bg-blue-700'
-                  >
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </Button>
-                )}
-                {data?.id !== user?.userId && (
-                  <EmailOutlinedIcon
+              <div className='flex flex-col items-center justify-end gap-2.5'>
+                <div className='flex gap-4 text-xl font-medium text-gray-700'>
+                  <p
+                    onClick={() => {
+                      setFollowing(false)
+                      setOpenModal(true)
+                    }}
                     className='cursor-pointer'
-                    onClick={() => router.push(`/messages?userId=${data?.id}`)}
+                  >
+                    {data?.followersCount} followers
+                  </p>
+
+                  <p
+                    onClick={() => {
+                      setFollowing(true)
+                      setOpenModal(true)
+                    }}
+                    className='cursor-pointer'
+                  >
+                    {data?.followingCount} following
+                  </p>
+                  <RelationshipsModal
+                    openModal={openModal}
+                    setOpenModal={setOpenModal}
+                    following={following}
+                    setFollowing={setFollowing}
                   />
-                )}
+                </div>
+                <div className='flex items-center gap-2'>
+                  {isLoading ? (
+                    'loading'
+                  ) : userId === user?.userId ? (
+                    <Button
+                      className='cursor-pointer !rounded-[5px] !bg-blue-500 !px-4 !py-2.5 !text-white hover:!bg-blue-700'
+                      onClick={() => setOpenUpdate(true)}
+                    >
+                      update
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleFollow.mutate(userId)}
+                      className='cursor-pointer !rounded-[5px] !bg-blue-500 !px-4 !py-2.5 !text-white hover:!bg-blue-700'
+                    >
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </Button>
+                  )}
+                  {data?.id !== user?.userId && (
+                    <EmailOutlinedIcon
+                      className='cursor-pointer'
+                      onClick={() =>
+                        router.push(`/messages?userId=${data?.id}`)
+                      }
+                    />
+                  )}
+                </div>
               </div>
             </div>
             <Posts userId={userId} />

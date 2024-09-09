@@ -34,10 +34,12 @@ const SignupForm = () => {
   const login = useMutation({
     mutationFn: (data: LoginRequest) => postLogin(data),
     onSuccess: data => {
+      document.cookie = `authToken=${data.token}; path=/;`
       setUser(data.user)
       localStorage.setItem('token', data.token)
-      document.cookie = `authToken=${data.token}; path=/;`
-      router.push('/')
+      setTimeout(() => {
+        router.push('/')
+      }, 200)
     },
     onError: () => {
       toast.error('Could not authenticate!!')

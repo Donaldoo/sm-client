@@ -132,16 +132,16 @@ export default function Post({ post }: { post: Post }) {
           />
         </div>
         <div className='flex items-center gap-5'>
-          <div className='flex cursor-pointer items-center gap-1.5 text-sm'>
+          <div
+            className='flex cursor-pointer items-center gap-1.5 text-sm'
+            onClick={handleLike}
+          >
             {isLoading ? (
               'loading'
             ) : hasLiked ? (
-              <FavoriteOutlinedIcon
-                style={{ color: 'red' }}
-                onClick={handleLike}
-              />
+              <FavoriteOutlinedIcon style={{ color: 'red' }} />
             ) : (
-              <FavoriteBorderOutlinedIcon onClick={handleLike} />
+              <FavoriteBorderOutlinedIcon />
             )}
             {data?.length} Likes
           </div>

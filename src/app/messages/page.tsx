@@ -7,7 +7,6 @@ export default function MessagesPage({
 }: {
   searchParams: { userId: string }
 }) {
-  console.log(searchParams.userId)
   return (
     <div className='m-auto mt-5 flex h-[87vh] max-h-[87vh] w-[80%] flex-col rounded-3xl bg-white px-10 py-5 shadow-md shadow-gray-400'>
       <MessagesHeader />

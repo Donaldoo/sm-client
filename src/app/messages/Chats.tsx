@@ -47,7 +47,9 @@ const Chats = () => {
               ) : (
                 <PersonIcon className='h-24 w-24 rounded-full bg-gray-200' />
               )}
-              <div className='absolute bottom-1 right-[1px] h-6 w-6 rounded-full border-2 border-green-700 bg-green-500' />
+              <div
+                className={`absolute bottom-1 right-[1px] h-6 w-6 rounded-full border-2 border-green-700 ${chat.isOnline ? 'bg-green-500' : 'bg-white'}`}
+              />
             </div>
             <div className='flex w-3/4 flex-col border-b border-gray-300 py-5'>
               <div className='flex items-center justify-between'>

@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import useCreateQueryString from '@/core/hooks/useCreateQueryString'
+import { getWorkIndustryLabel } from '@/utils/getWorkIndustryLabel'
 
 const HomeContent = ({
   category,
@@ -33,32 +34,37 @@ const HomeContent = ({
       'workExperience',
       event.target.value as string
     )
-    router.push(pathName + '?' + params)
+    router.push(pathName + '?' + params, { scroll: false })
   }
   return (
     <div className='no-scrollbar flex max-h-[92vh] w-[110vh] flex-col overflow-scroll px-[30px] py-5'>
       <Stories />
       <Share />
       {category?.length && parseInt(category) === 1 && (
-        <Box className='mb-5 w-1/4 self-end bg-white shadow-md'>
-          <FormControl fullWidth>
-            <InputLabel id='demo-simple-select-label' classes='bg-white'>
-              Experience
-            </InputLabel>
-            <Select
-              labelId='demo-simple-select-label'
-              id='demo-simple-select'
-              label='Experience'
-              onChange={handleExperienceChange}
-              value={workExperience}
-            >
-              <MenuItem value={1}>Full-time</MenuItem>
-              <MenuItem value={2}>Part-time</MenuItem>
-              <MenuItem value={3}>Internship</MenuItem>
-              <MenuItem value={0}>All</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+        <div className='flex items-center justify-between'>
+          <p className='text-2xl font-medium'>
+            {getWorkIndustryLabel(workIndustry)} posts
+          </p>
+          <Box className='mb-5 w-1/4 self-end bg-white shadow-md'>
+            <FormControl fullWidth>
+              <InputLabel id='demo-simple-select-label' classes='bg-white'>
+                Hiring options
+              </InputLabel>
+              <Select
+                labelId='demo-simple-select-label'
+                id='demo-simple-select'
+                label='Hiring options'
+                onChange={handleExperienceChange}
+                value={workExperience}
+              >
+                <MenuItem value={1}>Full-time</MenuItem>
+                <MenuItem value={2}>Part-time</MenuItem>
+                <MenuItem value={3}>Internship</MenuItem>
+                <MenuItem value={0}>All</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </div>
       )}
       <Posts
         category={category}

@@ -8,7 +8,7 @@ export interface EditAccountRequest {
   profilePicture?: string | null
   coverPicture?: string | null
   city?: string | null
-  website?: string | null
+  bio?: string | null
 }
 
 export function editAccount(req: EditAccountRequest): Promise<string> {
